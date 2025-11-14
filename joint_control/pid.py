@@ -35,9 +35,9 @@ class PIDController(object):
         self.e2 = np.zeros(size)
         # ADJUST PARAMETERS BELOW
         delay = 0
-        self.Kp = 0
+        self.Kp = 20
         self.Ki = 0
-        self.Kd = 0
+        self.Kd = 0.2
         self.y = deque(np.zeros(size), maxlen=delay + 1)
 
     def set_delay(self, delay):
@@ -53,8 +53,36 @@ class PIDController(object):
         @return control signal
         '''
         # YOUR CODE HERE
+        target = np.asarray(target, dtype=float)
+        sensor = np.asarray(sensor, dtype =float)
+    
+
+        if len(self.y) ==0:
+            self.y.append( sensor.copy())
+        else: 
+            self.y[-1] = sensor.copy()  
+        
+
+        y_delayed = self.y[0]
+    
+        e= target-y_delayed
+
+    
+        du = (self.Kp* (e-self.e1)+ self.Ki* self.dt *e + 
+        self.Kd / self.dt * (e- 2*self.dt + self.e2))
+
+        self.u += du
+
+        
+        self.e2 =self.e1 
+        self.e1=e 
+
+        #update prediction 
+        y_next =self.y[-1] + self.u *self.dt
+        self.y.append(y_next)
 
         return self.u
+    
 
 
 class PIDAgent(SparkAgent):
